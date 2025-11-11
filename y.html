@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恭喜获胜并获得奖励</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #000000;
+        }
+
+        .congratulations-container {
+            text-align: center;
+            background: #ffffff;
+            padding: 60px 40px;
+            border: 4px solid #000000;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            max-width: 520px;
+            width: 90%;
+            position: relative;
+            background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .congratulations-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #ff0000, #cc0000, #ff0000);
+        }
+
+        .congratulations-container::after {
+            content: 'RED BULL';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: 900;
+            color: #ff0000;
+            letter-spacing: 3px;
+            background: #ffffff;
+            padding: 0 20px;
+            font-family: Arial Black, Arial, sans-serif;
+        }
+
+        .victory-icon {
+            font-size: 100px;
+            font-weight: 900;
+            color: #cc0000;
+            margin-bottom: 20px;
+            font-family: 'Orbitron', monospace;
+            animation: victoryBounce 1.5s ease-in-out infinite;
+            text-shadow: 3px 3px 0px #ffffff, 6px 6px 0px #ff0000;
+            letter-spacing: 8px;
+        }
+
+        .money-icon {
+            font-size: 80px;
+            font-weight: 900;
+            color: #000000;
+            margin-bottom: 20px;
+            font-family: 'Orbitron', monospace;
+            animation: moneyFloat 2s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .title {
+            font-size: 42px;
+            color: #000000;
+            margin-bottom: 15px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-family: 'Orbitron', monospace;
+            animation: titlePulse 2s ease-in-out infinite;
+            text-transform: uppercase;
+        }
+
+        .reward-title {
+            font-size: 32px;
+            color: #cc0000;
+            margin-bottom: 15px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-family: 'Orbitron', monospace;
+            animation: rewardGlow 2s ease-in-out infinite;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: #666666;
+            margin-bottom: 25px;
+            font-style: italic;
+            font-weight: 600;
+            font-family: Arial, sans-serif;
+        }
+
+        .victory-message {
+            font-size: 18px;
+            color: #28a745;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-style: italic;
+            line-height: 1.5;
+            font-family: 'Orbitron', monospace;
+            animation: messageShine 3s ease-in-out infinite;
+        }
+
+        .reward-amount {
+            font-size: 56px;
+            color: #cc0000;
+            font-weight: 900;
+            margin: 25px 0;
+            letter-spacing: 3px;
+            text-shadow: 4px 4px 0px #ffffff, 8px 8px 0px #ff0000;
+            font-family: 'Orbitron', monospace;
+            animation: amountJump 1.8s ease-in-out infinite;
+            background: linear-gradient(45deg, #cc0000, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .reward-text {
+            font-size: 22px;
+            color: #000000;
+            margin-bottom: 30px;
+            font-weight: 900;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.4;
+        }
+
+        .success-message {
+            font-size: 18px;
+            color: #28a745;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-style: italic;
+            line-height: 1.5;
+            font-family: 'Orbitron', monospace;
+            background: #f0f8f0;
+            padding: 15px;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            animation: successPulse 2.5s ease-in-out infinite;
+        }
+
+        .countdown {
+            font-size: 16px;
+            color: #666666;
+            margin-top: 25px;
+            font-weight: 600;
+            font-family: Arial, sans-serif;
+        }
+
+        .countdown-number {
+            color: #cc0000;
+            font-weight: 900;
+            font-size: 20px;
+            letter-spacing: 2px;
+            font-family: 'Orbitron', monospace;
+            animation: countdownFlash 1s ease-in-out infinite;
+        }
+
+        /* 跳动动画效果 */
+        @keyframes victoryBounce {
+            0%, 20%, 50%, 80%, 100% { 
+                transform: translateY(0) scale(1); 
+            }
+            40% { 
+                transform: translateY(-20px) scale(1.1); 
+            }
+            60% { 
+                transform: translateY(-10px) scale(1.05); 
+            }
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { 
+                transform: scale(1); 
+                text-shadow: 2px 2px 0px #000000;
+            }
+            50% { 
+                transform: scale(1.02); 
+                text-shadow: 3px 3px 0px #000000, 0px 0px 10px rgba(0,0,0,0.3);
+            }
+        }
+
+        @keyframes amountJump {
+            0%, 20%, 50%, 80%, 100% { 
+                transform: translateY(0) scale(1); 
+            }
+            40% { 
+                transform: translateY(-15px) scale(1.05); 
+            }
+            60% { 
+                transform: translateY(-8px) scale(1.02); 
+            }
+        }
+
+        @keyframes rewardGlow {
+            0%, 100% { 
+                text-shadow: 2px 2px 0px #000000; 
+            }
+            50% { 
+                text-shadow: 3px 3px 0px #000000, 0px 0px 15px rgba(204, 0, 0, 0.5);
+            }
+        }
+
+        @keyframes moneyFloat {
+            0%, 100% { 
+                transform: translateY(0); 
+            }
+            50% { 
+                transform: translateY(-8px); 
+            }
+        }
+
+        @keyframes messageShine {
+            0%, 100% { 
+                background: #f0f8f0; 
+            }
+            50% { 
+                background: #e8f5e8; 
+            }
+        }
+
+        @keyframes successPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0px 0px 0px rgba(40, 167, 69, 0.3);
+            }
+            50% { 
+                transform: scale(1.01); 
+                box-shadow: 0px 0px 15px rgba(40, 167, 69, 0.2);
+            }
+        }
+
+        @keyframes countdownFlash {
+            0%, 100% { 
+                opacity: 1; 
+            }
+            50% { 
+                opacity: 0.7; 
+                transform: scale(1.1);
+            }
+        }
+
+        /* 经典区块样式 */
+        .victory-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 3px solid #cc0000;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #fff5f5 0%, #ffffff 100%);
+            box-shadow: inset 0px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .reward-section {
+            margin-bottom: 25px;
+            padding: 22px;
+            border: 3px solid #000000;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #fafafa 0%, #ffffff 100%);
+            box-shadow: inset 0px 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .congratulations-container {
+                margin: 10px;
+                padding: 40px 25px;
+                border-radius: 8px;
+            }
+            
+            .title {
+                font-size: 36px;
+                letter-spacing: 1px;
+            }
+            
+            .reward-amount {
+                font-size: 48px;
+                letter-spacing: 2px;
+            }
+            
+            .victory-icon {
+                font-size: 80px;
+                letter-spacing: 4px;
+            }
+            
+            .money-icon {
+                font-size: 65px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="congratulations-container">
+        <div class="victory-icon">★</div>
+        <div class="money-icon">¥</div>
+        <h1 class="title">VICTORY</h1>
+        <p class="subtitle">五子棋对战结果</p>
+        
+        <div class="victory-section">
+            <div style="font-size: 20px; color: #cc0000; font-weight: 900; margin-bottom: 10px; font-family: 'Orbitron', monospace;">🏆 胜利祝贺</div>
+            <div style="font-size: 16px; color: #333333; line-height: 1.4; font-family: Arial, sans-serif;">恭喜您在五子棋游戏中取得了辉煌胜利！</div>
+        </div>
+        
+        <div class="reward-section">
+            <div class="reward-title">REWARD</div>
+            <div class="reward-amount">300</div>
+            <p class="reward-text">现金奖励已到账</p>
+        </div>
+        
+        <div class="victory-message">
+            恭喜！您不仅赢得了精彩的对局，<br>
+            更获得了 300 元的丰厚奖金！
+        </div>
+        
+        <div class="success-message">
+            伟大的胜利！您展现了卓越的棋艺，<br>
+            这 300 元奖励是您实力的证明！
+        </div>
+        
+        <div class="countdown">
+            页面将在 <span class="countdown-number" id="countdown">3</span> 秒后自动跳转
+        </div>
+    </div>
+
+    <script>
+        // 倒计时功能
+        let countdownTime = 3;
+        const countdownElement = document.getElementById('countdown');
+        
+        const countdownTimer = setInterval(() => {
+            countdownTime--;
+            countdownElement.textContent = countdownTime;
+            
+            if (countdownTime <= 0) {
+                clearInterval(countdownTimer);
+                // 跳转到指定页面
+                window.location.href = '/pay/h5game/index.html';
+            }
+        }, 1000);
+
+        // 页面加载完成
+        window.addEventListener('load', function() {
+            console.log('胜利奖励页面加载完成 - 红牛经典风格');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏结果</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #000000;
+        }
+        
+        .result-container {
+            text-align: center;
+            background: #ffffff;
+            padding: 60px 40px;
+            border: 3px solid #000000;
+            border-radius: 8px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .result-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: #ff0000;
+        }
+
+        .game-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .title {
+            font-size: 36px;
+            color: #000000;
+            margin-bottom: 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: #666666;
+            margin-bottom: 25px;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .player-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px solid #cccccc;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .player-name {
+            font-size: 24px;
+            color: #000000;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .loss-message {
+            font-size: 18px;
+            color: #cc0000;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .balance-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px solid #ff0000;
+            border-radius: 8px;
+            background: #fff5f5;
+        }
+
+        .balance-loss {
+            font-size: 42px;
+            color: #cc0000;
+            font-weight: bold;
+            margin: 15px 0;
+            letter-spacing: 1px;
+        }
+
+        .balance-text {
+            font-size: 20px;
+            color: #666666;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .additional-message {
+            font-size: 16px;
+            color: #666666;
+            margin-bottom: 30px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .countdown {
+            font-size: 16px;
+            color: #666666;
+            margin-top: 25px;
+            font-weight: 500;
+        }
+
+        .countdown-number {
+            color: #cc0000;
+            font-weight: bold;
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        .red-bull-logo {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: #ff0000;
+            letter-spacing: 2px;
+            background: #ffffff;
+            padding: 0 15px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .result-container {
+                margin: 10px;
+                padding: 40px 25px;
+                border-radius: 6px;
+            }
+            
+            .title {
+                font-size: 32px;
+            }
+            
+            .balance-loss {
+                font-size: 36px;
+            }
+            
+            .game-icon {
+                font-size: 60px;
+            }
+        }
+
+        /* 经典按钮样式（如果需要重新开始等功能可以启用） */
+        .action-btn {
+            padding: 12px 24px;
+            background: #ff0000;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: Arial, serif;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .action-btn:hover {
+            background: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div class="red-bull-logo">RED BULL</div>
+        
+        <div class="game-icon">⚫⚪</div>
+        <h1 class="title">游戏结束</h1>
+        <p class="subtitle">五子棋对战结果</p>
+        
+        <div class="player-section">
+           
+        </div>
+        
+        <div class="loss-message">
+            很遗憾，您在这局游戏中失败了<br>
+            请总结经验，期待您下次更出色的表现
+        </div>
+        
+        <div class="balance-section">
+            <div class="balance-loss">-¥50</div>
+            <p class="balance-text">您的余额已减少 50 元</p>
+        </div>
+        
+        <div class="additional-message">
+            请继续努力，不断提升您的棋艺水平<br>
+            相信您一定能够取得更好的成绩
+        </div>
+        
+        <div class="countdown">
+            页面将在 <span class="countdown-number" id="countdown">3</span> 秒后自动返回游戏
+        </div>
+    </div>
+
+    <script>
+        // 倒计时功能
+        let countdownTime = 3;
+        const countdownElement = document.getElementById('countdown');
+        
+        const countdownTimer = setInterval(() => {
+            countdownTime--;
+            countdownElement.textContent = countdownTime;
+            
+            if (countdownTime <= 0) {
+                clearInterval(countdownTimer);
+                // 跳转到游戏页面
+                window.location.href = '/pay/h5game/index.html';
+            }
+        }, 1000);
+
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            // 可以在这里添加一些初始化逻辑
+            console.log('游戏结果页面加载完成');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Bull 账户登录 / 注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 420px;
+            border: 3px solid #000000;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: #ff0000;
+        }
+
+        .form-container {
+            display: none;
+            padding: 40px 35px;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            position: relative;
+        }
+
+        .header::before {
+            content: 'RED BULL';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: #ff0000;
+            letter-spacing: 3px;
+        }
+
+        .header h2 {
+            color: #000000;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            color: #666666;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .auto-login-info,
+        .register-success {
+            background: #fffacd;
+            color: #000000;
+            padding: 10px 15px;
+            border: 1px solid #ffd700;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            text-align: center;
+            font-style: italic;
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #000000;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cccccc;
+            border-radius: 3px;
+            font-size: 15px;
+            font-family: Arial, serif;
+            background: #ffffff;
+            color: #000000;
+            transition: border-color 0.2s ease;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: #ff0000;
+            background: #ffffff;
+        }
+
+        .form-group input.error {
+            border-color: #cc0000;
+            background: #fff8f8;
+        }
+
+        .error-message {
+            color: #cc0000;
+            font-size: 11px;
+            margin-top: 3px;
+            display: none;
+            font-style: italic;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            height: 3px;
+            background: #e8e8e8;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-weak { background: #cc0000; width: 33%; }
+        .strength-medium { background: #ff8800; width: 66%; }
+        .strength-strong { background: #009900; width: 100%; }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background: #ff0000;
+            color: #ffffff;
+            border: none;
+            border-radius: 3px;
+            font-size: 15px;
+            font-family: Arial, serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            background: #cc0000;
+        }
+
+        .btn:active {
+            background: #990000;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666666;
+            font-style: italic;
+        }
+
+        .footer a {
+            color: #ff0000;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .switch-form {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #666666;
+            font-style: italic;
+        }
+
+        .switch-form a {
+            color: #ff0000;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .switch-form a:hover {
+            text-decoration: underline;
+        }
+
+        /* 经典红牛logo样式 */
+        .red-bull-logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000000;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                border-radius: 6px;
+            }
+            
+            .form-container {
+                padding: 30px 25px;
+            }
+            
+            .header h2 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 登录表单 -->
+        <div id="loginForm" class="form-container active">
+            <div class="header">
+                <div class="red-bull-logo">RED BULL</div>
+                <h2>账户登录</h2>
+                <p>欢迎您回来，请输入登录凭据</p>
+            </div>
+
+            <!-- 自动登录提示 -->
+            <div id="autoLoginInfo" class="auto-login-info">
+                正在为您自动登录...
+            </div>
+
+            <form onsubmit="return handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginPhone">手机号码 *</label>
+                    <input type="tel" id="loginPhone" name="phone" placeholder="请输入您的手机号码" required>
+                    <div class="error-message" id="loginPhoneError">请输入正确的手机号码格式</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">登录密码 *</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="请输入您的登录密码" required>
+                    <div class="error-message" id="loginPasswordError">请输入登录密码</div>
+                </div>
+
+                <button type="submit" class="btn">登 录</button>
+            </form>
+
+            <div class="footer">
+                尚未拥有账户？<a href="#" onclick="switchToRegister()">立即注册新账户</a>
+            </div>
+        </div>
+
+        <!-- 注册表单 -->
+        <div id="registerForm" class="form-container">
+            <div class="header">
+                <div class="red-bull-logo">RED BULL</div>
+                <h2>账户注册</h2>
+                <p>请填写您的个人信息完成注册</p>
+            </div>
+
+            <!-- 注册成功提示 -->
+            <div id="registerSuccess" class="register-success">
+                注册成功！正在为您自动登录...
+            </div>
+
+            <form onsubmit="return handleRegister(event)">
+                <div class="form-group">
+                    <label for="realName">真实姓名 *</label>
+                    <input type="text" id="realName" name="realName" placeholder="请输入您的真实姓名" required>
+                    <div class="error-message" id="realNameError">请输入真实姓名（2-20个字符）</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">手机号码 *</label>
+                    <input type="tel" id="phone" name="phone" placeholder="请输入您的手机号码" required>
+                    <div class="error-message" id="phoneError">请输入正确的手机号码格式</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">登录密码 *</label>
+                    <input type="password" id="password" name="password" placeholder="请输入登录密码" required>
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="strength-bar" id="strengthBar"></div>
+                    </div>
+                    <div class="error-message" id="passwordError">密码至少6位，包含字母和数字</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码 *</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请再次输入登录密码" required>
+                    <div class="error-message" id="confirmPasswordError">两次输入的密码不一致</div>
+                </div>
+
+                <button type="submit" class="btn">注 册</button>
+            </form>
+
+            <div class="footer">
+                已有账户？<a href="#" onclick="switchToLogin()">立即登录账户</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时检查自动登录
+        window.onload = function() {
+            checkAutoLogin();
+        };
+
+        // 检查自动登录
+        function checkAutoLogin() {
+            const savedUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            
+            if (currentUser && savedUsers.length > 0) {
+                const userExists = savedUsers.some(user => user.phone === currentUser.phone);
+                if (userExists) {
+                    showAutoLoginInfo('autoLoginInfo');
+                    setTimeout(() => {
+                        redirectToGame();
+                    }, 2000);
+                    return;
+                }
+            }
+        }
+
+        // 显示自动登录信息
+        function showAutoLoginInfo(elementId) {
+            const info = document.getElementById(elementId);
+            if (info) {
+                info.style.display = 'block';
+            }
+        }
+
+        // 切换到注册表单
+        function switchToRegister() {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('registerForm').classList.add('active');
+            clearAllErrors();
+        }
+
+        // 切换到登录表单
+        function switchToLogin() {
+            document.getElementById('registerForm').classList.remove('active');
+            document.getElementById('loginForm').classList.add('active');
+            clearAllErrors();
+        }
+
+        // 清除所有错误信息
+        function clearAllErrors() {
+            const errorElements = document.querySelectorAll('.error-message');
+            const inputElements = document.querySelectorAll('.form-group input');
+            
+            errorElements.forEach(el => el.style.display = 'none');
+            inputElements.forEach(el => el.classList.remove('error'));
+        }
+
+        // 处理登录
+        function handleLogin(event) {
+            event.preventDefault();
+            clearAllErrors();
+            
+            const phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            const savedUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            
+            const user = savedUsers.find(u => u.phone === phone && u.password === password);
+            
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                alert('登录成功！');
+                redirectToGame();
+            } else {
+                showError('loginPhone', 'loginPhoneError', '手机号或密码错误');
+            }
+        }
+
+        // 处理注册
+        function handleRegister(event) {
+            event.preventDefault();
+            clearAllErrors();
+            
+            let isValid = true;
+            
+            const realName = document.getElementById('realName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (realName.length < 2 || realName.length > 20) {
+                showError('realName', 'realNameError', '请输入真实姓名（2-20个字符）');
+                isValid = false;
+            }
+            
+            const phoneRegex = /^1[3-9]\d{9}$/;
+            if (!phoneRegex.test(phone)) {
+                showError('phone', 'phoneError', '请输入正确的手机号码格式');
+                isValid = false;
+            }
+            
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
+            if (!passwordRegex.test(password) || password.length < 6) {
+                showError('password', 'passwordError', '密码至少6位，包含字母和数字');
+                isValid = false;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('confirmPassword', 'confirmPasswordError', '两次输入的密码不一致');
+                isValid = false;
+            }
+            
+            if (isValid) {
+                const savedUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+                const existingUser = savedUsers.find(user => user.phone === phone);
+                
+                if (existingUser) {
+                    showError('phone', 'phoneError', '该手机号码已被注册');
+                    isValid = false;
+                } else {
+                    const newUser = {
+                        realName: realName,
+                        phone: phone,
+                        password: password,
+                        registerTime: new Date().toISOString()
+                    };
+                    
+                    savedUsers.push(newUser);
+                    localStorage.setItem('registeredUsers', JSON.stringify(savedUsers));
+                    
+                    document.getElementById('registerSuccess').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        localStorage.setItem('currentUser', JSON.stringify(newUser));
+                        document.getElementById('registerSuccess').style.display = 'none';
+                        showAutoLoginInfo('registerSuccess');
+                        setTimeout(() => {
+                            redirectToGame();
+                        }, 2000);
+                    }, 1500);
+                    
+                    return false;
+                }
+            }
+            
+            return false;
+        }
+
+        // 显示错误信息
+        function showError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            input.classList.add('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        // 跳转到游戏页面
+        function redirectToGame() {
+            window.location.href = '/pay/h5game/index.html';
+        }
+
+        // 密码强度检测
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthIndicator = document.getElementById('passwordStrength');
+            const strengthBar = document.getElementById('strengthBar');
+            
+            if (password.length === 0) {
+                strengthIndicator.style.display = 'none';
+                return;
+            }
+            
+            strengthIndicator.style.display = 'block';
+            
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[^\w\s]/.test(password)) strength++;
+            
+            if (strength <= 2) {
+                strengthBar.className = 'strength-bar strength-weak';
+            } else if (strength <= 4) {
+                strengthBar.className = 'strength-bar strength-medium';
+            } else {
+                strengthBar.className = 'strength-bar strength-strong';
+            }
+        });
+    </script>
+</body>
+</html>
