@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>H5-五子棋</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background-color: #f5f5dc;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 横幅广告 */
+  .banner-ad {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: linear-gradient(90deg, #ff0000, #ff7700); /* 红牛经典红橙渐变 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); /* 添加轻微阴影增强立体感 */
+}
+
+.banner-ad::before {
+    content: "⚡ 红牛能量站"; /* 使用红牛品牌元素和电光符号 */
+    margin-right: 20px;
+    font-size: 18px;
+    letter-spacing: 1px; /* 字母间距，增加动感 */
+}
+
+.banner-ad::after {
+    content: "极限挑战"; /* 体现红牛的极限运动精神 */
+    margin-left: 20px;
+    font-size: 18px;
+    letter-spacing: 1px;
+}
+
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            width: 100vw;
+            justify-content: center;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #333;
+            border-radius: 0px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .current-player {
+            color: #2c5aa0;
+        }
+
+        .opponent-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .avatar {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #333;
+            border-radius: 0px;
+            vertical-align: middle;
+        }
+
+        .opponent-nickname {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .board-container {
+            position: relative;
+            margin-bottom: 20px;
+            background-color: #DEB887;
+            padding: 10px;
+            border: 3px solid #333;
+            border-radius: 0px;
+        }
+
+        #board {
+            display: block;
+            background-color: #DEB887;
+        }
+
+        .ui-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        #gameStatus {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid #333;
+            border-radius: 0px;
+            max-width: 300px;
+        }
+
+        #restart {
+            padding: 12px 24px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: 2px solid #45a049;
+            border-radius: 0px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+        }
+
+        #restart:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 768px) {
+            .banner-ad {
+                height: 60px;
+                font-size: 16px;
+            }
+            
+            .banner-ad::before,
+            .banner-ad::after {
+                font-size: 14px;
+            }
+            
+            .banner-ad::before {
+                margin-right: 10px;
+            }
+            
+            .banner-ad::after {
+                margin-left: 10px;
+            }
+            
+            .game-wrapper {
+                height: calc(100vh - 60px);
+                padding-top: 60px;
+            }
+            
+            #gameStatus {
+                font-size: 20px;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 横幅广告 -->
+    <div class="banner-ad"></div>
+
+    <div class="game-wrapper">
+        <div class="main-content">
+            <div class="game-info">
+                <div class="player-info current-player">
+                    <span></span>
+                </div>
+                <div class="opponent-info">
+                    <img src="/asset/icontx.png" class="avatar" alt="头像">
+                    <span class="opponent-nickname" id="opponentName">用户123456</span>
+                </div>
+            </div>
+
+            <div class="board-container">
+                <canvas id="board"></canvas>
+            </div>
+            
+            <div class="ui-container">
+                <div id="gameStatus">游戏开始，轮到你下棋</div>
+                <button id="restart"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        const gameStatusDisplay = document.getElementById('gameStatus');
+        const opponentNameElement = document.getElementById('opponentName');
+
+        const GRID_SIZE = 15;
+        let cellSize = 0;
+        let pieceRadius = 0;
+        let board = [];
+        let currentPlayer = 1; // 1为玩家(黑棋), 2为对手(白棋)
+        let gameOver = false;
+        let aiThinking = false;
+        let aiTimer = null;
+
+        // 生成随机6位数字ID
+        function generateRandomId() {
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += Math.floor(Math.random() * 10);
+            }
+            return result;
+        }
+
+        // 生成对手昵称
+        function generateOpponentName() {
+            return '用户' + generateRandomId();
+        }
+
+        const opponentName = generateOpponentName();
+        opponentNameElement.textContent = opponentName;
+
+        function initGame() {
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.6;
+
+            cellSize = Math.min(
+                Math.floor(maxWidth / GRID_SIZE),
+                Math.floor(maxHeight / GRID_SIZE)
+            );
+
+            cellSize = Math.max(cellSize, 20);
+
+            pieceRadius = cellSize / 2 - 2;
+
+            canvas.width = GRID_SIZE * cellSize;
+            canvas.height = GRID_SIZE * cellSize;
+
+            board = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+            currentPlayer = 1;
+            gameOver = false;
+            aiThinking = false;
+            if (aiTimer) {
+                clearTimeout(aiTimer);
+                aiTimer = null;
+            }
+            gameStatusDisplay.textContent = '游戏开始，轮到你下棋';
+            updateStatus('轮到你下棋 (黑棋)');
+            drawBoard();
+        }
+
+        function updateStatus(text) {
+            document.getElementById('gameStatus').textContent = text;
+        }
+
+        function updateOpponentInfo() {
+            opponentNameElement.textContent = opponentName;
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(cellSize / 2, i * cellSize + cellSize / 2);
+                ctx.lineTo(canvas.width - cellSize / 2, i * cellSize + cellSize / 2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize + cellSize / 2, cellSize / 2);
+                ctx.lineTo(i * cellSize + cellSize / 2, canvas.height - cellSize / 2);
+                ctx.stroke();
+            }
+
+            const starPoints = [
+                [3, 3], [3, 11], [7, 7], [11, 3], [11, 11]
+            ];
+            ctx.fillStyle = '#000';
+            for (const [x, y] of starPoints) {
+                ctx.beginPath();
+                ctx.arc(
+                    x * cellSize + cellSize / 2,
+                    y * cellSize + cellSize / 2,
+                    3, 0, Math.PI * 2
+                );
+                ctx.fill();
+            }
+
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    if (board[row][col] === 1) {
+                        drawPiece(col, row, 'black');
+                    } else if (board[row][col] === 2) {
+                        drawPiece(col, row, 'white');
+                    }
+                }
+            }
+        }
+
+        function drawPiece(x, y, color) {
+            ctx.beginPath();
+            ctx.arc(
+                x * cellSize + cellSize / 2,
+                y * cellSize + cellSize / 2,
+                pieceRadius,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function checkWin(x, y, player) {
+            const directions = [
+                [1, 0], [0, 1], [1, 1], [1, -1]
+            ];
+
+            for (const [dx, dy] of directions) {
+                let count = 1;
+
+                for (let i = 1; i < 5; i++) {
+                    const nx = x + dx * i;
+                    const ny = y + dy * i;
+                    if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && board[ny][nx] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+
+                for (let i = 1; i < 5; i++) {
+                    const nx = x - dx * i;
+                    const ny = y - dy * i;
+                    if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && board[ny][nx] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (count >= 5) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function countConsecutive(x, y, player, dx, dy) {
+            let count = 1;
+            
+            // 向一个方向数
+            let i = 1;
+            while (i < 5) {
+                const nx = x + dx * i;
+                const ny = y + dy * i;
+                if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && board[ny][nx] === player) {
+                    count++;
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            
+            // 向相反方向数
+            i = 1;
+            while (i < 5) {
+                const nx = x - dx * i;
+                const ny = y - dy * i;
+                if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && board[ny][nx] === player) {
+                    count++;
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            
+            return count;
+        }
+
+        function hasNConsecutive(x, y, player, n, dx, dy) {
+            return countConsecutive(x, y, player, dx, dy) >= n;
+        }
+
+        function findBestMove() {
+            // ==================== 优先级1：如果能获胜，立即获胜 ====================
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 2;
+                        if (checkWin(j, i, 2)) {
+                            board[i][j] = 0;
+                            return [j, i];
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // ==================== 优先级2：如果玩家即将获胜（3连或更多），必须阻止 ====================
+            // 检查玩家是否即将形成5连（阻止必胜）
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 1;
+                        if (checkWin(j, i, 1)) {
+                            board[i][j] = 0;
+                            return [j, i]; // 必须阻止玩家获胜
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // ==================== 优先级3：寻找自己的获胜机会 ====================
+            // 检查是否能形成4连且两端开放（必胜机会）
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 2;
+                        if (hasNConsecutive(j, i, 2, 4, 1, 0) || hasNConsecutive(j, i, 2, 4, 0, 1) || 
+                            hasNConsecutive(j, i, 2, 4, 1, 1) || hasNConsecutive(j, i, 2, 4, 1, -1)) {
+                            // 检查是否两端开放
+                            let openEnds = 0;
+                            const directions = [[1,0], [0,1], [1,1], [1,-1]];
+                            for (const [dx, dy] of directions) {
+                                let count = countConsecutive(j, i, 2, dx, dy);
+                                if (count >= 4) {
+                                    // 检查这个方向的两端是否开放
+                                    let nx = j + dx * 4;
+                                    let ny = i + dy * 4;
+                                    if (nx < GRID_SIZE && ny < GRID_SIZE && board[ny][nx] === 0) openEnds++;
+                                    nx = j - dx * 4;
+                                    ny = i - dy * 4;
+                                    if (nx >= 0 && ny >= 0 && board[ny][nx] === 0) openEnds++;
+                                }
+                            }
+                            if (openEnds > 0) {
+                                board[i][j] = 0;
+                                return [j, i];
+                            }
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // ==================== 优先级4：阻止玩家形成4连或更多 ====================
+            // 阻止玩家4连
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 1;
+                        if (hasNConsecutive(j, i, 1, 4, 1, 0) || hasNConsecutive(j, i, 1, 4, 0, 1) || 
+                            hasNConsecutive(j, i, 1, 4, 1, 1) || hasNConsecutive(j, i, 1, 4, 1, -1)) {
+                            // 检查是否两端开放
+                            let openEnds = 0;
+                            const directions = [[1,0], [0,1], [1,1], [1,-1]];
+                            for (const [dx, dy] of directions) {
+                                let count = countConsecutive(j, i, 1, dx, dy);
+                                if (count >= 4) {
+                                    let nx = j + dx * 4;
+                                    let ny = i + dy * 4;
+                                    if (nx < GRID_SIZE && ny < GRID_SIZE && board[ny][nx] === 0) openEnds++;
+                                    nx = j - dx * 4;
+                                    ny = i - dy * 4;
+                                    if (nx >= 0 && ny >= 0 && board[ny][nx] === 0) openEnds++;
+                                }
+                            }
+                            if (openEnds > 0) {
+                                board[i][j] = 0;
+                                return [j, i]; // 必须阻止玩家4连
+                            }
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // ==================== 优先级5：寻找自己的3连机会 ====================
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 2;
+                        if (hasNConsecutive(j, i, 2, 3, 1, 0) || hasNConsecutive(j, i, 2, 3, 0, 1) || 
+                            hasNConsecutive(j, i, 2, 3, 1, 1) || hasNConsecutive(j, i, 2, 3, 1, -1)) {
+                            // 检查是否两端开放
+                            let openEnds = 0;
+                            const directions = [[1,0], [0,1], [1,1], [1,-1]];
+                            for (const [dx, dy] of directions) {
+                                let count = countConsecutive(j, i, 2, dx, dy);
+                                if (count >= 3) {
+                                    let nx = j + dx * 3;
+                                    let ny = i + dy * 3;
+                                    if (nx < GRID_SIZE && ny < GRID_SIZE && board[ny][nx] === 0) openEnds++;
+                                    nx = j - dx * 3;
+                                    ny = i - dy * 3;
+                                    if (nx >= 0 && ny >= 0 && board[ny][nx] === 0) openEnds++;
+                                }
+                            }
+                            if (openEnds > 0) {
+                                board[i][j] = 0;
+                                return [j, i]; // 好的3连机会
+                            }
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // ==================== 优先级6：阻止玩家形成3连 ====================
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 1;
+                        if (hasNConsecutive(j, i, 1, 3, 1, 0) || hasNConsecutive(j, i, 1, 3, 0, 1) || 
+                            hasNConsecutive(j, i, 1, 3, 1, 1) || hasNConsecutive(j, i, 1, 3, 1, -1)) {
+                            // 检查是否两端开放
+                            let openEnds = 0;
+                            const directions = [[1,0], [0,1], [1,1], [1,-1]];
+                            for (const [dx, dy] of directions) {
+                                let count = countConsecutive(j, i, 1, dx, dy);
+                                if (count >= 3) {
+                                    let nx = j + dx * 3;
+                                    let ny = i + dy * 3;
+                                    if (nx < GRID_SIZE && ny < GRID_SIZE && board[ny][nx] === 0) openEnds++;
+                                    nx = j - dx * 3;
+                                    ny = i - dy * 3;
+                                    if (nx >= 0 && ny >= 0 && board[ny][nx] === 0) openEnds++;
+                                }
+                            }
+                            if (openEnds > 0) {
+                                board[i][j] = 0;
+                                return [j, i]; // 阻止玩家3连
+                            }
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // ==================== 优先级7：中心策略和随机走法 ====================
+            const center = Math.floor(GRID_SIZE / 2);
+            if (board[center][center] === 0) {
+                return [center, center];
+            }
+
+            // 尝试在已有棋子附近下棋
+            const candidates = [];
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        // 检查周围是否有棋子
+                        let hasNeighbor = false;
+                        for (let di = -1; di <= 1; di++) {
+                            for (let dj = -1; dj <= 1; dj++) {
+                                if (di === 0 && dj === 0) continue;
+                                const ni = i + di;
+                                const nj = j + dj;
+                                if (ni >= 0 && ni < GRID_SIZE && nj >= 0 && nj < GRID_SIZE && board[ni][nj] !== 0) {
+                                    hasNeighbor = true;
+                                    break;
+                                }
+                            }
+                            if (hasNeighbor) break;
+                        }
+                        if (hasNeighbor) {
+                            candidates.push([j, i]);
+                        }
+                    }
+                }
+            }
+
+            if (candidates.length > 0) {
+                const idx = Math.floor(Math.random() * candidates.length);
+                return candidates[idx];
+            }
+
+            // 最后随机选择
+            const empty = [];
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        empty.push([j, i]);
+                    }
+                }
+            }
+            if (empty.length > 0) {
+                const idx = Math.floor(Math.random() * empty.length);
+                return empty[idx];
+            }
+
+            return null;
+        }
+
+        function hasNConsecutive(x, y, player, n, dx, dy) {
+            let count = 1;
+            
+            // 向一个方向数
+            let i = 1;
+            while (i < n) {
+                const nx = x + dx * i;
+                const ny = y + dy * i;
+                if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && board[ny][nx] === player) {
+                    count++;
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            
+            // 向相反方向数
+            i = 1;
+            while (i < n) {
+                const nx = x - dx * i;
+                const ny = y - dy * i;
+                if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && board[ny][nx] === player) {
+                    count++;
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            
+            return count >= n;
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (gameOver || currentPlayer !== 1 || aiThinking) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const col = Math.round((x - cellSize / 2) / cellSize);
+            const row = Math.round((y - cellSize / 2) / cellSize);
+
+            if (col >= 0 && col < GRID_SIZE && row >= 0 && row < GRID_SIZE && board[row][col] === 0) {
+                board[row][col] = 1;
+                drawBoard();
+                updateStatus('等待对手下棋...');
+
+                if (checkWin(col, row, 1)) {
+                    gameStatusDisplay.textContent = '恭喜！你赢了！';
+                    gameOver = true;
+                    setTimeout(() => {
+                        window.location.href = '/y.html';
+                    }, 1500);
+                    return;
+                }
+
+                currentPlayer = 2;
+                updateStatus('对手思考中...');
+                
+                setTimeout(() => {
+                    makeOpponentMove();
+                }, Math.random() * 4000 + 2000); // 2-6秒随机延迟
+            }
+        });
+
+        function makeOpponentMove() {
+            if (gameOver) return;
+            
+            aiThinking = true;
+            updateStatus('对手正在下棋...');
+
+            const [col, row] = findBestMove();
+            if (col !== undefined && row !== undefined) {
+                board[row][col] = 2;
+                drawBoard();
+
+                if (checkWin(col, row, 2)) {
+                    gameStatusDisplay.textContent = '很遗憾你输了！';
+                    gameOver = true;
+                    setTimeout(() => {
+                        window.location.href = '/s.html';
+                    }, 1500);
+                    return;
+                }
+
+                currentPlayer = 1;
+                updateStatus('轮到你下棋 (黑棋)');
+            }
+            aiThinking = false;
+        }
+
+        window.addEventListener('resize', () => {
+            setTimeout(initGame, 100);
+        });
+
+        const restartBtn = document.getElementById('restart');
+        restartBtn.addEventListener('click', () => {
+            initGame();
+        });
+
+        initGame();
+    </script>
+</body>
+</html>

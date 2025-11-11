@@ -1,1 +1,817 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋 - 经典策略对战游戏</title>
+    <style type="text/css">
+       * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'SimSun', '宋体', serif;
+            background: radial-gradient(ellipse at center, #fef9e7 0%, #fff8dc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #2c2c2c;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255, 69, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 140, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(220, 20, 60, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 联系客服按钮 - 固定在最上层 */
+        .kf-button {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff4500, #ffd700);
+            border: 3px solid #ff4500;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 
+                0 6px 15px rgba(255, 69, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kf-button:hover {
+            background: linear-gradient(135deg, #ffd700, #ffff00);
+            border-color: #ffd700;
+            transform: scale(1.1);
+            box-shadow: 
+                0 8px 20px rgba(255, 69, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .kf-button:active {
+            transform: scale(1.05);
+            box-shadow: 
+                0 4px 10px rgba(255, 69, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .kf-icon {
+            width: 24px;
+            height: 24px;
+            fill: #fff8dc;
+        }
+
+        .title {
+            font-size: 2.8rem;
+            color: #8b0000;
+            margin-bottom: 20px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15);
+            position: relative;
+            display: inline-block;
+        }
+
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #ff4500, transparent);
+            border-radius: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #4a4a4a;
+            margin-bottom: 40px;
+            line-height: 1.8;
+            font-style: italic;
+            letter-spacing: 1px;
+            font-weight: 400;
+        }
+
+        /* 新的非矩形主布局 */
+        .main-content {
+            display: block;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 游戏预览区域 - 圆形背景 */
+        .game-preview-container {
+            background: radial-gradient(circle at 30% 30%, #fffacd, #fff8dc);
+            margin: 0 auto 40px auto;
+            padding: 40px;
+            border-radius: 50%;
+            width: 400px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid #ff4500;
+            box-shadow: 
+                0 0 0 3px rgba(255, 69, 0, 0.3),
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .game-preview-container::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            background: conic-gradient(from 0deg, #ff4500, #ffd700, #ff0000, #ffd700, #ff4500);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
+        .game-preview {
+            background: transparent;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .chess-board {
+            background: #ffd700;
+            padding: 20px;
+            border: 4px solid #ff4500;
+            border-radius: 10px;
+            box-shadow: 
+                inset 0 0 20px rgba(255, 69, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: rotate(-1deg);
+        }
+
+        .board-row {
+            display: flex;
+        }
+
+        .board-cell {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ff4500;
+            background: #ffd700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .board-cell.black::after {
+            content: '●';
+            color: #8b0000;
+            font-size: 20px;
+        }
+
+        .board-cell.white::after {
+            content: '○';
+            color: #666;
+            font-size: 20px;
+        }
+
+        /* 功能特点区域 - 不规则分布 */
+        .features-container {
+            display: block;
+            margin: 40px 0;
+        }
+
+        .features-row {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature-item {
+            background: #fffacd;
+            padding: 25px 20px;
+            border: 3px solid #ff4500;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            max-width: 220px;
+            transform: rotate(var(--rotation, 0deg));
+            transition: transform 0.3s ease;
+        }
+
+        .feature-item:nth-child(1) { --rotation: -2deg; }
+        .feature-item:nth-child(2) { --rotation: 1deg; }
+        .feature-item:nth-child(3) { --rotation: -1deg; }
+
+        .feature-item:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+
+        .feature-item::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(135deg, #ff4500, #ffd700);
+            border-radius: 0;
+            z-index: -1;
+            opacity: 0.08;
+        }
+
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            fill: #ff4500;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-text h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #8b0000;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .feature-text p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #4a4a4a;
+            font-style: italic;
+        }
+
+        /* 特惠区域 - 波浪形布局 */
+        .offer-section {
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .special-offer {
+            background: linear-gradient(135deg, #fffacd, #fff8dc);
+            padding: 30px 30px;
+            border: 5px solid #ff4500;
+            box-shadow: 
+                0 12px 25px rgba(255, 69, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+            display: inline-block;
+            max-width: 500px;
+            border-radius: 20px;
+        }
+
+        .special-offer::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: linear-gradient(45deg, #ff4500, #ffd700, #ff4500);
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        .special-offer h3 {
+            font-size: 1.3rem;
+            margin-bottom: 18px;
+            color: #8b0000;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .special-offer p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2c2c2c;
+            font-style: italic;
+        }
+
+        /* 游戏说明区域 - 不规则卡片 */
+        .info-section {
+            background: #fffacd;
+            margin: 30px 0;
+            padding: 25px;
+            border: 3px solid #ff4500;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            border-radius: 15px;
+            transform: perspective(1000px) rotateX(2deg);
+        }
+
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #ff4500, #ffd700);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0.05;
+        }
+
+        .info-text {
+            font-style: italic;
+            letter-spacing: 0.5px;
+            color: #2c2c2c;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-text strong {
+            color: #ff4500;
+        }
+
+        /* 按钮区域 - 非对称布局 */
+        .button-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #ff4500, #dc143c);
+            color: #fff8dc;
+            border: 4px solid #ff4500;
+            padding: 18px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 12px 20px rgba(255, 69, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            letter-spacing: 1px;
+            font-family: inherit;
+            flex: 1;
+            min-width: 180px;
+            text-align: center;
+            position: relative;
+            transform: skew(-2deg);
+        }
+
+        .play-button:nth-child(2) {
+            transform: skew(2deg);
+        }
+
+        .play-button:hover {
+            background: linear-gradient(135deg, #ffd700, #ffff00);
+            border-color: #ffd700;
+            transform: skew(-2deg) translateY(-3px);
+            box-shadow: 
+                0 18px 28px rgba(255, 69, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            color: #8b0000;
+        }
+
+        .play-button:nth-child(2):hover {
+            transform: skew(2deg) translateY(-3px);
+        }
+
+        .play-button:active {
+            transform: skew(-2deg) translateY(-1px);
+            box-shadow: 
+                0 6px 12px rgba(255, 69, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .play-button:nth-child(2):active {
+            transform: skew(2deg) translateY(-1px);
+        }
+
+        .play-button.secondary {
+            background: linear-gradient(135deg, #8b0000, #ff4500);
+            border-color: #8b0000;
+        }
+
+        .play-button.secondary:hover {
+            background: linear-gradient(135deg, #ff4500, #ffd700);
+            border-color: #ff4500;
+        }
+
+        /* 装饰元素 */
+        .decorative-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 69, 0, 0.1), transparent);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-circle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-circle:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            top: 20%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .floating-circle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            bottom: 15%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.4rem;
+                letter-spacing: 6px;
+            }
+            
+            .game-preview-container {
+                width: 320px;
+                height: 320px;
+                padding: 30px;
+            }
+            
+            .features-row {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .feature-item {
+                max-width: 100%;
+                transform: none !important;
+            }
+            
+            .button-container {
+                flex-direction: column;
+            }
+            
+            .play-button {
+                transform: none !important;
+                min-width: 250px;
+                color: #fff8dc;
+            }
+            
+            .play-button:nth-child(2) {
+                transform: none !important;
+            }
+            
+            .play-button:hover {
+                transform: translateY(-3px) !important;
+                color: #8b0000;
+            }
+            
+            .play-button:nth-child(2):hover {
+                transform: translateY(-3px) !important;
+            }
+            
+            .kf-button {
+                top: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+                letter-spacing: 4px;
+            }
+            
+            .game-preview-container {
+                width: 280px;
+                height: 280px;
+                padding: 25px;
+            }
+            
+            .chess-board {
+                padding: 15px;
+            }
+            
+            .board-cell {
+                width: 26px;
+                height: 26px;
+                font-size: 16px;
+            }
+            
+            .board-cell.black::after,
+            .board-cell.white::after {
+                font-size: 18px;
+            }
+        }
+
+        /* 古典装饰元素 */
+        .decorative-line {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff4500, transparent);
+            margin: 15px auto;
+            border-radius: 1px;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 装饰浮动元素 -->
+  <div class="decorative-elements">
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-square"></div>
+    <div class="floating-triangle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+</div>
+
+<!-- 顶部闪烁横幅 -->
+<div class="top-banner" style="position:fixed;top:0;left:0;width:100%;background:linear-gradient(45deg,red,yellow,pink);color:white;z-index:1000;text-align:center;padding:5px;font-size:14px;font-weight:bold;animation:flash 1s infinite;">
+    🔥 限时特惠！新用户注册送VIP！充值即送道具！数量有限先到先得！🔥
+</div>
+
+
+<!-- 联系客服按钮 -->
+<div class="kf-button" onclick="goToKF()" title="联系客服" style="position:fixed;top:20px;right:20px;z-index:1001;">
+    <svg class="kf-icon" viewBox="0 0 24 24">
+        <path d="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4C22,2.89 21.1,2 20,2M6,9H18V11H6V9M6,12H15V14H6V12M6,15H12V17H6V15Z"/>
+    </svg>
+</div>
+
+<div class="container">
+    <!-- 顶部大标题区域 -->
+    <div style="text-align:center;margin-bottom:20px;position:relative;">
+        <h1 class="title" style="font-size:48px;font-weight:bold;color:gold;text-shadow:0 0 10px gold,0 0 20px red,0 0 30px red;animation:blink 1s infinite,bounce 2s infinite;
+        @keyframes blink{0%,50%{opacity:1;}51%,100%{opacity:0.3;}}@keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0);}40%{transform:translateY(-10px);}60%{transform:translateY(-5px);}}">
+            五子棋
+        </h1>
+        
+        <!-- 副标题 -->
+        <p class="subtitle" style="font-size:18px;color:white;margin:10px 0 20px 0;text-shadow:2px 2px 4px rgba(0,0,0,0.8);">
+            经典策略对战游戏 · 轻松休闲 · 挑战智力 · 与好友一决高下
+        </p>
+        
+        <!-- 顶部小广告条 -->
+        <div style="background:rgba(255,0,0,0.8);color:white;padding:5px 15px;border-radius:20px;display:inline-block;margin-bottom:15px;font-size:14px;animation:flash 2s infinite;">
+            🎯 限时活动：前100名玩家充值100有概率升级VIP！
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- 圆形游戏预览区域 -->
+        <div class="game-preview-container" style="position:relative;">
+            <div class="game-preview">
+                <div class="chess-board">
+                    <div class="board-row">
+                        <div class="board-cell"></div><div class="board-cell"></div><div class="board-cell black"></div><div class="board-cell"></div><div class="board-cell"></div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-cell"></div><div class="board-cell white"></div><div class="board-cell"></div><div class="board-cell"></div><div class="board-cell"></div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-cell"></div><div class="board-cell"></div><div class="board-cell"></div><div class="board-cell"></div><div class="board-cell"></div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-cell"></div><div class="board-cell"></div><div class="board-cell"></div><div class="board-cell white"></div><div class="board-cell"></div>
+                    </div>
+                    <div class="board-row">
+                        <div class="board-cell"></div><div class="board-cell"></div><div class="board-cell"></div><div class="board-cell"></div><div class="board-cell black"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 游戏预览旁边的小广告 -->
+            <div style="position:absolute;top:-30px;right:-30px;width:80px;height:80px;background:radial-gradient(circle,red,yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:10px;text-align:center;line-height:1.2;z-index:10;">
+                HOT<br>🔥<br>热门
+            </div>
+        </div>
+
+        <!-- 不规则分布的功能特点 -->
+        <div class="features-container">
+            <div class="features-row">
+                <div class="feature-item" style="transform:rotate(-5deg);margin-top:20px;">
+                    <svg class="feature-icon" viewBox="0 0 24 24">
+                        <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
+                    </svg>
+                    <div class="feature-text">
+                        <h3>规则简单</h3>
+                        <p>规则简单，老少皆宜，轻松上手</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item" style="transform:rotate(3deg);margin-left:50px;margin-top:-30px;">
+                    <svg class="feature-icon" viewBox="0 0 24 24">
+                        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11C15.4,11 16,11.4 16,12V16C16,16.6 15.6,17 15,17H9C8.4,17 8,16.6 8,16V12C8,11.4 8.4,11 9,11V10C9,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.4,8.7 10.4,10V11H13.6V10C13.6,8.7 12.8,8.2 12,8.2Z"/>
+                    </svg>
+                    <div class="feature-text">
+                        <h3>策略性强</h3>
+                        <p>考验智慧，锻炼思维，乐趣无穷</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item" style="transform:rotate(-2deg);margin-left:80px;margin-top:20px;">
+                    <svg class="feature-icon" viewBox="0 0 24 24">
+                        <path d="M17,19H7V5H17M17,1H7C5.89,1 5,1.89 5,3V21A2,2 0 0,0 7,23H17A2,2 0 0,0 19,21V3C19,1.89 18.1,1 17,1Z"/>
+                    </svg>
+                    <div class="feature-text">
+                        <h3>即时对战</h3>
+                        <p>无需等待，随时随地享受对弈乐趣</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 特惠区域 -->
+        <div class="offer-section" style="background:linear-gradient(45deg,red,orange,pink);border:3px dashed gold;border-radius:20px;padding:20px;margin:20px 0;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-10px;left:-10px;right:-10px;bottom:-10px;background:repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(255,255,255,0.1) 5px,rgba(255,255,255,0.1) 10px);z-index:1;pointer-events:none;"></div>
+            
+            <div class="special-offer" style="position:relative;z-index:2;text-align:center;">
+                <h3 style="color:gold;font-size:20px;margin-bottom:15px;">
+                    <i style="color: gold; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🎊 新用户专享福利 🎊</i>
+                </h3>
+                <div style="background:rgba(255,255,255,0.9);padding:15px;border-radius:10px;margin:10px 0;">
+                    <p style="font-size:14px;color:black;margin:5px 0;">
+                     ！<br>
+                        💎 充值超过500元即可享受5次收对方一个棋子的特权！<br>
+                        🚀 充值越多，特权越多，快来体验吧！
+                    </p>
+                </div>
+                <div style="background:red;color:white;padding:8px;border-radius:15px;font-size:12px;font-weight:bold;animation:flash 1.5s infinite;">
+                    ⏰ 活动仅剩最后3天！
+                </div>
+            </div>
+        </div>
+
+        <!-- 额外的广告横幅 -->
+        <div style="background:linear-gradient(90deg,blue,purple);color:white;padding:10px;text-align:center;margin:15px 0;border-radius:10px;font-size:14px;animation:slide 3s infinite;">
+            📢 推荐给好友双方各得10元充值券！立即分享赚取奖励！
+        </div>
+
+        <!-- 游戏说明区域 -->
+        <div class="info-section" style="background:rgba(0,0,0,0.7);padding:15px;border-radius:10px;margin:15px 0;border:2px solid gold;">
+            <div class="info-text" style="color:white;font-size:14px;line-height:1.5;">
+                <strong style="color:yellow;">⚠️ 游戏说明：</strong>首次可以免费游玩，从第二次开始需要付费。新用户充值超过500元可享受特殊权益！<br>
+                <span style="font-size:12px;color:#ccc;">* 充值金额越多，享受的特权越丰富，机会难得不要错过！</span>
+            </div>
+        </div>
+
+        <!-- 更多广告信息 -->
+        <div style="background:linear-gradient(135deg,green,yellow);color:black;padding:12px;border-radius:15px;margin:15px 0;text-align:center;font-size:13px;font-weight:bold;animation:glow 2s infinite;">
+    谁获胜谁就可以获得300~1000奖金
+        </div>
+
+        <!-- 按钮区域 -->
+        <div class="button-container" style="text-align:center;margin-top:25px;">
+            <button class="play-button" onclick="handlePlayClick()" style="font-size:18px;padding:15px 30px;margin:0 10px;border-radius:25px;box-shadow:0 5px 15px rgba(255,215,0,0.6);animation:pulse 2s infinite;">
+                🎮立即游玩
+            </button>
+            <button class="play-button secondary" onclick="goToPay()" style="font-size:18px;padding:15px 30px;margin:0 10px;border-radius:25px;box-shadow:0 5px 15px rgba(255,0,0,0.6);animation:pulse 2.5s infinite;">
+                去充值
+            </button>
+            
+            
+        </div>
+    </div>
+</div>
+
+<!-- 底部固定广告 -->
+<div style="position:fixed;bottom:0;left:0;width:100%;background:rgba(0,0,0,0.8);color:white;padding:10px;text-align:center;font-size:12px;z-index:1000;">
+    <span style="color:yellow;">© 2024 五子棋游戏 - </span>
+    <span style="color:red;">新用户难度超低 | 充值送特权 | 客服24小时在线</span>
+    <span style="float:right;margin-right:20px;"><a href="#" style="color:blue;">隐私政策</a> | <a href="#" style="color:blue;">服务条款</a></span>
+</div>
+
+
+    <script type="text/javascript">
+        // 处理立即游玩按钮点击
+        function handlePlayClick() {
+            checkAndRedirect();
+        }
+
+        // 检查游玩次数并重定向
+        function checkAndRedirect() {
+            var playCount = localStorage.getItem('wuziqi_play_count');
+            playCount = playCount ? parseInt(playCount) : 0;
+
+            if (playCount === 0) {
+                // 第一次游玩，免费
+                localStorage.setItem('wuziqi_play_count', '1');
+                showFreePlayMessage();
+                redirectToGame();
+            } else {
+                // 第二次及以后，需要付费
+                showPayRequiredMessage();
+            }
+        }
+
+        // 显示免费游玩消息
+        function showFreePlayMessage() {
+            alert('欢迎首次游玩！本次免费体验，祝您游戏愉快！');
+        }
+
+        // 显示需要付费消息
+        function showPayRequiredMessage() {
+            var playCount = localStorage.getItem('wuziqi_play_count') || '0';
+            alert('您已游玩 ' + playCount + ' 次，从第二次开始需要付费才能继续游玩。\n\n新用户充值超过500元可享受5次收对方一个棋子的特权！\n\n请联系客服或前往充值页面。');
+            window.location.href = '/pay/pal.html';
+        }
+
+        // 重定向到游戏页面
+        function redirectToGame() {
+            window.location.href = '/pay/h5game/main.html';
+        }
+
+        // 直接去充值页面
+        function goToPay() {
+           window.location.href = '/pay/pal.html';
+        }
+
+        // 新增：跳转到联系客服页面
+        function goToKF() {
+            window.location.href = '/asset/kf.html';
+        }
+
+        // 页面加载时检查是否是首次访问
+        window.onload = function() {
+            var isFirstVisit = !localStorage.getItem('wuziqi_visited');
+            if (isFirstVisit) {
+                localStorage.setItem('wuziqi_visited', 'true');
+                console.log('欢迎新用户！');
+            }
+        };
+    </script>
+</body>
+</html>
